@@ -12,6 +12,10 @@ services:
     env_file:
       - .env
 
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
     
     build:
@@ -25,6 +29,30 @@ services:
 
     env_file:
       - .env
+
+
+  db:
+    
+    build:
+      context: ./_docker/postgis
+      dockerfile: Dockerfile
+    
+    container_name: db4${PROJECT_NAME}
+    
+    env_file:
+      - .env
+
+    volumes:
+      - dbdata:/var/lib/postgresql
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   nginx:
     build:
@@ -45,3 +73,8 @@ services:
     depends_on:
       - backend
       - frontend
+
+
+volumes:
+  dbdata:
+    name: ${PROJECT_NAME}_dbdata_v
