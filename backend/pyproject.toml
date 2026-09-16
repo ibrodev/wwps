@@ -1,0 +1,13 @@
+[project]
+name = "wwp-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ibrahim Mohammed", email = "ibromoh.change@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.53.0",
+]
