@@ -44,7 +44,7 @@ COPY . .
 
 ENV NODE_ENV=production
 
-RUN npm run build
+CMD ["npm", "run", "build"]
 
 
 # Runner stage: minimal runtime image with compiled app and production deps.
@@ -71,8 +71,8 @@ RUN chown node:node .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app ./
+# COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 
 # If you want to persist the fetch cache generated during the build so that
 # cached responses are available immediately on startup, uncomment this line:
@@ -85,4 +85,4 @@ USER node
 EXPOSE 3000
 
 # Start Next.js standalone server
-CMD ["node", "server.js"]
+CMD ["npm", "run", "start"]

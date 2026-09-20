@@ -42,3 +42,9 @@ services:
   db:
     ports:
       - "5432:5432"
+
+
+  nginx:
+    
+    volumes:
+      - ./_docker/nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro

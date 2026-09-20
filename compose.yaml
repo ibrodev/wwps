@@ -16,6 +16,9 @@ services:
       db:
         condition: service_healthy
 
+    expose:
+      - "8000"
+
   frontend:
     
     build:
@@ -29,6 +32,9 @@ services:
 
     env_file:
       - .env
+
+    expose:
+      - "3000"
 
 
   db:
