@@ -12,11 +12,15 @@ export interface GeoJSONGeometry {
 }
 
 export interface FeatureProperties {
-    id: number;
-    name: string;
-    sos: string;
-    eos: string;
-    location?: number
+    ID: number;
+    Name: string;
+    SOS: string;
+    EOS: string;
+    Scheme_ID?: string,
+    Area_ha?: string,
+    Crop?: string,
+    Crop_ID?: string,
+    Location?: number
 }
 
 export interface GeoJSONFeature {

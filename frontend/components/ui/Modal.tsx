@@ -89,7 +89,7 @@ export default function Modal({
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-md rounded-lg bg-white shadow-xl">
+      <div className="relative z-10 w-full max-w-md rounded bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-b-eiar-dark/15 px-3 py-3">
           <div className="flex flex-col">
             {title && (

@@ -14,8 +14,6 @@ export default function MapSelection({
 
   useEffect(() => {
     const handleClick = () => {
-      console.log("MAP CLICK - CLEAR SELECTION");
-
       onClear();
     };
 
@@ -24,6 +22,7 @@ export default function MapSelection({
     return () => {
       map.off("click", handleClick);
     };
+    
   }, [map, onClear]);
 
   return null;

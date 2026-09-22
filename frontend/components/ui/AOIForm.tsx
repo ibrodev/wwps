@@ -5,38 +5,40 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import type { GeoJSONFeature } from "@/types/geojson";
-import { useEffect } from "react";
 
-const createAoiSchema = (isPoint:boolean) => z.object({
-    id: z
+const createAoiSchema = (isPoint:boolean, areaOfInterests: GeoJSONFeature[]) => z.object({
+    ID: z
         .string()
-        .nonempty('id is required'),
+        .nonempty('id is required')
+        .refine(val => !areaOfInterests.some(
+            (value) => value.properties.ID === parseInt(val)
+        ), {message: 'ID must be unique'}),
 
-    name: z
+    Name: z
         .string()
         .nonempty('plot name is required'),
 
-    sos: z
+    SOS: z
         .string()
         .nonempty('start of season is require'),
 
-    eos: z
+    EOS: z
         .string()
         .nonempty('end of season is required'),
 
-    location: isPoint
+    Location: isPoint
       ? z.string().nonempty("location is required")
       : z.string().optional(),
 
 }).refine(
     (data) => {
-        if (!data.sos || !data.eos) return true
+        if (!data.SOS || !data.EOS) return true
 
-        return data.eos > data.sos
+        return data.EOS > data.SOS
     },
     {
         message: 'end of season cannot be before start of season',
-        path: ['eos']
+        path: ['EOS']
     }
 );
 
@@ -61,15 +63,18 @@ export default function AOIForm(
 ) {
 
     const isPoint = feature?.geometry.type === "Point";
+    const lastId = areaOfInterests.length ? (
+      areaOfInterests
+      .map(value => value.properties.ID)
+      .sort((a,b) => a-b)[areaOfInterests.length - 1] + 1
+    ).toString() : "1"
 
-    const aoiSchema = createAoiSchema(isPoint);
+    const aoiSchema = createAoiSchema(isPoint, areaOfInterests);
 
     type AOIFormData = z.infer<typeof aoiSchema>;
 
 
     const {
-        setError,
-        clearErrors,
         register,
         watch,
         handleSubmit,
@@ -77,49 +82,30 @@ export default function AOIForm(
     } = useForm<AOIFormData>({
         resolver: zodResolver(aoiSchema),
         defaultValues: {
-            id: areaOfInterests.length ? (areaOfInterests.map((value: GeoJSONFeature) => value.properties.id).sort()[areaOfInterests.length -1] + 1).toString() : '1',
-            name: '',
-            sos: '',
-            eos: '',
-            location: feature?.geometry.type === 'Point' ? '1' : ''
+            ID: lastId,
+            Name: '',
+            SOS: '',
+            EOS: '',
+            Location: feature?.geometry.type === 'Point' ? '1' : ''
         }
     });
 
-    const id = watch('id')
-    const sos = watch('sos')
+    const sos = watch('SOS')
 
     const onSubmit = (data: AOIFormData) => {
     const properties = {
-      id: parseInt(data.id, 10),
-      name: data.name,
-      sos: data.sos,
-      eos: data.eos,
-      location:
-        isPoint && data.location
-          ? parseInt(data.location, 10)
+      ID: parseInt(data.ID, 10),
+      Name: data.Name,
+      SOS: data.SOS,
+      EOS: data.EOS,
+      Location:
+        isPoint && data.Location
+          ? parseInt(data.Location, 10)
           : undefined,
     };
 
     onSave(properties);
   };
-
-
-    useEffect(() => {
-        if (!id || errors.id) return;
-
-        const idExists = areaOfInterests.some(
-            (value) => value.properties.id.toString() === id
-        );
-
-        if (idExists) {
-            setError("id", {
-            type: "manual",
-            message: "ID must be unique",
-            });
-        } else {
-            clearErrors("id");
-        }
-    }, [id, areaOfInterests, setError, clearErrors]);   
 
     
 
@@ -128,38 +114,38 @@ export default function AOIForm(
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex gap-2 w-full">
             <div className="flex flex-col">
-              <label htmlFor="id" className="form-label">ID</label>
+              <label htmlFor="ID" className="form-label">ID</label>
               <input 
                 type="number"
-                {...register('id')} 
-                name="id" 
-                id="id" 
+                {...register('ID')} 
+                name="ID" 
+                id="ID" 
                 className={`form-input w-32 ${
-                    errors.id ? "form-input-error" : ""
+                    errors.ID ? "form-input-error" : ""
                 }`}
                 
               />
-            {errors.id && (
+            {errors.ID && (
                 <p className="form-error">
-                    {errors.id.message}
+                    {errors.ID.message}
                 </p>
             )}
             </div>
             <div className="flex flex-col flex-auto">
-              <label htmlFor="name" className="form-label">Plot name</label>
+              <label htmlFor="Name" className="form-label">Plot name</label>
               <input 
                 type="text" 
-                {...register('name')} 
-                name="name" 
-                id="name"
+                {...register('Name')} 
+                name="Name" 
+                id="Name"
                 placeholder="e.g. Koga block 3" 
                 className={`form-input ${
-                    errors.name ? "form-input-error" : ""
+                    errors.Name ? "form-input-error" : ""
                 }`}
               />
-              {errors.name && (
+              {errors.Name && (
                 <p className="form-error">
-                    {errors.name.message}
+                    {errors.Name.message}
                 </p>
             )}
             </div>
@@ -167,37 +153,37 @@ export default function AOIForm(
 
           <div className="flex gap-2 w-full">
             <div className="flex flex-col w-1/2">
-              <label htmlFor="sos" className="form-label">Start of season</label>
+              <label htmlFor="SOS" className="form-label">Start of season</label>
               <input 
                 type="date" 
-                {...register('sos')} 
-                name="sos" 
-                id="sos" 
+                {...register('SOS')} 
+                name="SOS" 
+                id="SOS" 
                 className={`form-input ${
-                    errors.sos ? "form-input-error" : ""
+                    errors.SOS ? "form-input-error" : ""
                 }`}
               />
-              {errors.sos && (
+              {errors.SOS && (
                 <p className="form-error">
-                    {errors.sos.message}
+                    {errors.SOS.message}
                 </p>
             )}
             </div>
             <div className="flex flex-col w-1/2">
-              <label htmlFor="eos" className="form-label">End of season</label>
+              <label htmlFor="EOS" className="form-label">End of season</label>
               <input 
                 type="date" 
-                {...register('eos')}
-                min={sos || undefined} 
-                name="eos" 
-                id="eos"
+                {...register('EOS')}
+                min={sos || undefined} // TODO: calculate min date
+                name="EOS" 
+                id="EOS"
                 className={`form-input ${
-                    errors.eos ? "form-input-error" : ""
+                    errors.EOS ? "form-input-error" : ""
                 }`}
               />
-              {errors.eos && (
+              {errors.EOS && (
                 <p className="form-error">
-                    {errors.eos.message}
+                    {errors.EOS.message}
                 </p>
             )}
             </div>
@@ -206,19 +192,19 @@ export default function AOIForm(
           {feature?.geometry.type === 'Point' &&
             <div className="flex gap-2 w-full">
               <div className="flex flex-col w-full">
-                <label htmlFor="location" className="form-label">Location (plot number)</label>
+                <label htmlFor="Location" className="form-label">Location (plot number)</label>
                 <input 
                   type="number" 
-                  {...register('location')} 
-                  name="location" 
-                  id="location" 
+                  {...register('Location')} 
+                  name="Location" 
+                  id="Location" 
                 className={`form-input ${
-                    errors.location ? "form-input-error" : ""
+                    errors.Location ? "form-input-error" : ""
                 }`}
                 />
-                {errors.location && (
+                {errors.Location && (
                 <p className="form-error">
-                    {errors.location.message}
+                    {errors.Location.message}
                 </p>
             )}
               </div>
@@ -229,8 +215,9 @@ export default function AOIForm(
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
+              onClick={onDiscard}
               className="
-                rounded-lg 
+                rounded 
                 border 
                 border-gray-400 
                 px-4 py-2 text-sm 
@@ -249,7 +236,7 @@ export default function AOIForm(
             <button
               type="submit"
               className="
-                rounded-lg 
+                rounded 
                 bg-eiar-green/90 
                 px-8 
                 py-2

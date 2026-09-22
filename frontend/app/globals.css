@@ -38,3 +38,29 @@
         @apply mt-1 text-sm text-red-600;
     }
 }
+
+.leaflet-pm-toolbar .leaflet-pm-icon-polygon {
+    background-image: url("/map/icons/vector-polygon.svg") !important;
+}
+
+.leaflet-pm-toolbar .leaflet-pm-icon-marker {
+    background-image: url("/map/icons/map-pin.svg") !important;
+}
+
+.leaflet-pm-toolbar .leaflet-pm-icon-delete {
+    background-image: url("/map/icons/eraser.svg") !important;
+}
+
+.leaflet-pm-icon-import {
+    background-image: url("/map/icons/import.svg");
+}
+
+@keyframes notification-progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}

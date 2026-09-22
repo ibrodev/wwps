@@ -24,6 +24,7 @@ import MapFeatures from "@/components/map/MapFeatures";
 import MapSelection from "@/components/map/MapSelection";
 
 import type { GeoJSONFeature } from "@/types/geojson";
+import MapBaseLayers from "./MapBaseLayers";
 
 interface MapProps {
   features?: GeoJSONFeature[];
@@ -43,19 +44,23 @@ interface MapProps {
     feature: GeoJSONFeature,
     layer: L.Layer
   ) => void;
+
+  onUpload?: (file: File) => void;
 }
 
 
 export default function Map({
   features = [],
- selectedFeature = null,
+  selectedFeature = null,
   onSelect,
   onCreate,
   onDelete,
+  onUpload
 }: MapProps) {
     return <MapContainer
         center={[8.98060340, 38.75776050]}
         zoom={7}
+        maxZoom={18}
         scrollWheelZoom
         style={{
             position: 'absolute',
@@ -67,28 +72,28 @@ export default function Map({
         }}
     >
 
-        <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        <MapBaseLayers />
+
+        <FitFeatures 
+          features={features}
+          selectedFeature={selectedFeature}
         />
 
-    <FitFeatures features={features}
-        selectedFeature={selectedFeature}/>
-
         <MapFeatures
-        features={features}
-        selectedFeature={selectedFeature}
-        onSelect={onSelect}
-      />
+          features={features}
+          selectedFeature={selectedFeature}
+          onSelect={onSelect}
+        />
 
-      <MapSelection
-        onClear={() => onSelect?.(null)}
-      />
+        <MapSelection
+          onClear={() => onSelect?.(null)}
+        />
 
-      <MapDrawing
-        onCreate={onCreate}
-        onDelete={onDelete}
-      />
+        <MapDrawing
+          onCreate={onCreate}
+          onDelete={onDelete}
+          onUpload={onUpload}
+        />
 
     </MapContainer>
 }

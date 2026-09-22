@@ -17,19 +17,17 @@ export default function MapFeatures({
   selectedFeature,
   onSelect,
 }: MapFeaturesProps) {
+
   const map = useMap();
 
   useEffect(() => {
+
     const geoJsonLayer = L.geoJSON(features, {
-      /*
-       * Make sure vector features are interactive.
-       */
+      
+      // Make sure vector features are interactive.
       interactive: true,
 
-      /*
-       * Don't allow polygon mouse events to bubble
-       * to the map.
-       */
+      // Don't allow polygon mouse events to bubble to the map.
       bubblingMouseEvents: false,
 
       style: (feature) => {
@@ -37,7 +35,7 @@ export default function MapFeatures({
 
         const selected =
           id != null &&
-          id === selectedFeature?.properties?.id;
+          id === selectedFeature?.properties?.ID;
 
         return {
           color: selected ? "#2563eb" : "#3388ff",
@@ -52,33 +50,22 @@ export default function MapFeatures({
         const geoJsonFeature =
           feature as GeoJSONFeature;
 
-        /*
-         * Store the GeoJSON feature on the Leaflet layer.
-         */
+        // Store the GeoJSON feature on the Leaflet layer.
         (
           layer as L.Layer & {
             feature?: GeoJSONFeature;
           }
         ).feature = geoJsonFeature;
 
-        /*
-         * Explicitly handle the click.
-         */
+        // Explicitly handle the click.
         layer.on("click", (event) => {
-          console.log(
-            "FEATURE CLICK:",
-            geoJsonFeature
-          );
 
-          /*
-           * Stop the click reaching the map.
-           */
-          L.DomEvent.stopPropagation(
-            event
-          );
-
+          // Stop the click reaching the map.
+          L.DomEvent.stopPropagation(event);
           onSelect(geoJsonFeature);
+
         });
+
       },
     });
 
@@ -87,6 +74,7 @@ export default function MapFeatures({
     return () => {
       geoJsonLayer.remove();
     };
+
   }, [
     map,
     features,

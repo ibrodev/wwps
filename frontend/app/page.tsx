@@ -1,11 +1,19 @@
 "use client"
 
+import { useCallback } from "react";
 import dynamic from "next/dynamic";
 
 import type { GeoJSONFeature } from "@/types/geojson";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import AOIForm from "@/components/ui/AOIForm";
+
+
+import {
+  importGeoData,
+} from "@/lib/map/import/importGeoData";
+import SideBar from "@/components/ui/SideBar";
+import { useNotification } from "@/components/ui/NotificationProvider";
 
 const Map = dynamic(
   () => import('@/components/map/Map'),
@@ -24,101 +32,84 @@ export default function Home() {
 
    const [layer, setLayer] = useState<L.Layer | null>(null)
    const [feature, setFeature] = useState<GeoJSONFeature | null>(null)
-
    const [areaOfInterest, setAreaOfInterest] = useState<Array<GeoJSONFeature> | []>([])
-
    const [selectedFeature, setSelectedFeature] = useState<GeoJSONFeature | null>(null);
-  const removingTemporaryLayer =  useRef(false);
+   
+   const removingTemporaryLayer =  useRef(false);
+
+   const { notify } = useNotification();
 
   
 
-  const handleCreate = (
-    feature: GeoJSONFeature,
-    layer: L.Layer
-  ) => {
-    console.log("Created feature:");
-    console.log(layer);
-
-    // setOpen(true)
+  const handleCreate = (feature: GeoJSONFeature, layer: L.Layer ) => {
     setLayer(layer)
     setFeature(feature)
-
-    /*
-    * Send to FastAPI here.
-    *
-    * Example:
-    *
-    * await fetch(
-    *   `${process.env.NEXT_PUBLIC_API_URL}/api/features`,
-    *   {
-    *     method: "POST",
-    *     headers: {
-    *       "Content-Type": "application/json",
-    *     },
-    *     body: JSON.stringify({
-    *       geometry: feature.geometry,
-    *     }),
-    *   }
-    * );
-    */
   };
 
-  /*
-   * User used Geoman's removal tool.
-   */
- 
- 
-const handleDelete = (
-  feature: GeoJSONFeature,
-  layer: L.Layer
-) => {
-  if (removingTemporaryLayer.current) {
-    return;
-  }
+  // User used Geoman's removal tool.
+  const handleDelete = (feature: GeoJSONFeature, layer?: L.Layer) => {
+    
+    if (removingTemporaryLayer.current) {
+      return;
+    }
 
-  setAreaOfInterest((previous) =>
-    previous.filter(
-      (item) =>
-        item.properties.id !==
-        feature.properties.id
-    )
-  );
+    if (selectedFeature?.properties.ID === feature.properties.ID) {
+      setSelectedFeature(null);
+    }
 
-  if (
-    selectedFeature?.properties.id ===
-    feature.properties.id
-  ) {
-    setSelectedFeature(null);
-  }
-};
-  const handleSave = (
-  properties: Record<string, unknown>
-) => {
-  if (!layer || !feature) {
-    return;
-  }
+    setAreaOfInterest((previous) =>
+      previous.filter(
+        (item) =>
+          item.properties.ID !==
+          feature.properties.ID
+      )
+    );
 
-  const updatedFeature: GeoJSONFeature = {
-    ...feature,
-    properties,
+
   };
 
-  removingTemporaryLayer.current = true;
+  const handleClear = () => {
+    if (selectedFeature) {
+      setSelectedFeature(null)
+    }
+    setAreaOfInterest([])
+  }
 
-  layer.remove();
 
-  setAreaOfInterest((previous) => [
-    ...previous,
-    updatedFeature,
-  ]);
+  const handleSave = (properties: Record<string, unknown>) => {
+    
+    if (!layer || !feature) {
+      return;
+    }
 
-  setLayer(null);
-  setFeature(null);
+    const updatedFeature: GeoJSONFeature = {
+      ...feature,
+      properties,
+    };
 
-  removingTemporaryLayer.current = false;
-};
+    removingTemporaryLayer.current = true;
 
-   const handleDiscard = () => {
+    layer.remove();
+
+    setAreaOfInterest((previous) => [
+      ...previous,
+      updatedFeature,
+    ]);
+
+    setLayer(null);
+    setFeature(null);
+
+    setSelectedFeature(updatedFeature)
+
+    removingTemporaryLayer.current = false;
+
+     notify.success("Plot successfully added", {
+      title: "Success",
+    });
+  };
+
+  const handleDiscard = () => {
+  
     if (layer) {
       /*
        * The layer was already added to the map
@@ -132,30 +123,88 @@ const handleDelete = (
   };
   
 
-  
+  const  handleSelect = (areaOfInterest: GeoJSONFeature) => {
 
-  useEffect(() => {
+    
 
-    console.log(areaOfInterest)
+    if (selectedFeature && (selectedFeature.properties.ID === areaOfInterest.properties.ID)) {
+      setSelectedFeature(null)
+    } else {
 
-  }, [areaOfInterest])
+      setSelectedFeature(areaOfInterest)
+    }
+
+  }
+
+  const handleUpload = useCallback(
+    
+    async (files: File[]) => {
+
+    try {
+
+      const result = await importGeoData(files);
+
+      setAreaOfInterest(
+        prev => [
+          ...prev,
+          ...result.features,
+        ]
+      );
+
+      notify.success("Plot successfully added", {
+        title: "Success",
+      });
+
+    } catch (error) {
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to import file.";
+
+      console.log(message) // TODO: use alert - notification
+
+    }
+  },[]);
 
   return (
     <>
-      <Modal
-        layer={layer}
-        feature={feature}
-        onClose={setLayer}
-        title="Plot attributes"
-      >
-       <AOIForm
-          feature={feature}
+      
+
+        <SideBar 
           areaOfInterests={areaOfInterest}
-          onSave={handleSave}
-          onDiscard={handleDiscard}
+          selectedAreaOfInterest={selectedFeature}
+          onSelect={handleSelect}
+          onRemove={handleDelete}
+          onClear={handleClear}
         />
-      </Modal>
-      <Map onCreate={handleCreate} onDelete={handleDelete} selectedFeature={selectedFeature} onSelect={setSelectedFeature} features={areaOfInterest}/>
+
+
+
+      <div className="w-full flex-auto relative">
+        <Modal
+          layer={layer}
+          feature={feature}
+          onClose={setLayer}
+          title="Plot attributes"
+        >
+        <AOIForm
+            feature={feature}
+            areaOfInterests={areaOfInterest}
+            onSave={handleSave}
+            onDiscard={handleDiscard}
+          />
+        </Modal>
+        <Map 
+          onCreate={handleCreate} 
+          onDelete={handleDelete} 
+          selectedFeature={selectedFeature} 
+          onSelect={setSelectedFeature} 
+          features={areaOfInterest}
+          onUpload={handleUpload}
+        />
+      </div>
+      
     </>
   );
 }
