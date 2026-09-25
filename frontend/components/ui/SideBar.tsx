@@ -11,6 +11,7 @@ interface SideBarProps {
     selectedAreaOfInterest: GeoJSONFeature | null
     onSelect: (areaOfInterest: GeoJSONFeature) => void
     onRemove: (areaOfInterest: GeoJSONFeature) => void
+    onCalculate: () => void
     onClear: () => void
 }
 
@@ -19,6 +20,7 @@ export default function SideBar({
     selectedAreaOfInterest, 
     onSelect, 
     onRemove,
+    onCalculate,
     onClear
 } : SideBarProps) {
 
@@ -163,6 +165,7 @@ export default function SideBar({
                         disabled:border-eiar-green/10
                         disabled:hover:bg-eiar-green/10
                     "
+                    onClick={onCalculate}
                     disabled={!areaOfInterests.length}
                 >
                     Run analysis

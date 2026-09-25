@@ -1,5 +1,17 @@
 FROM python:3.13-slim AS base
 
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libexpat1 \
+        libgeos-c1v5 \
+        libproj-dev \
+        proj-data \
+        proj-bin \
+        libgdal-dev \
+        gdal-bin \
+    && rm -rf /var/lib/apt/lists/*
+
 # install uv
 # The installer requires curl (and certificates) to download the release archive
 RUN apt-get update && apt-get install -y --no-install-recommends \

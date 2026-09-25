@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import dynamic from "next/dynamic";
 
-import type { GeoJSONFeature } from "@/types/geojson";
+import type { EstimateResult, GeoJSONFeature } from "@/types/geojson";
 import { useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import AOIForm from "@/components/ui/AOIForm";
@@ -14,6 +14,7 @@ import {
 } from "@/lib/map/import/importGeoData";
 import SideBar from "@/components/ui/SideBar";
 import { useNotification } from "@/components/ui/NotificationProvider";
+import WaPORProgress from "@/components/ui/WaPORProgress";
 
 const Map = dynamic(
   () => import('@/components/map/Map'),
@@ -34,6 +35,7 @@ export default function Home() {
    const [feature, setFeature] = useState<GeoJSONFeature | null>(null)
    const [areaOfInterest, setAreaOfInterest] = useState<Array<GeoJSONFeature> | []>([])
    const [selectedFeature, setSelectedFeature] = useState<GeoJSONFeature | null>(null);
+   const [jobId, setJobId] = useState<string | null>(null)
    
    const removingTemporaryLayer =  useRef(false);
 
@@ -136,6 +138,13 @@ export default function Home() {
 
   }
 
+
+  const formatDate = (value: string | Date) => {
+    return value instanceof Date
+      ? value.toISOString().split("T")[0]
+      : value.split("T")[0];
+  };
+
   const handleUpload = useCallback(
     
     async (files: File[]) => {
@@ -147,7 +156,7 @@ export default function Home() {
       setAreaOfInterest(
         prev => [
           ...prev,
-          ...result.features,
+          ...result.features.map(val => ({...val, properties: {...val.properties, SOS: formatDate(val.properties.SOS), EOS: formatDate(val.properties.EOS)}})),
         ]
       );
 
@@ -167,6 +176,67 @@ export default function Home() {
     }
   },[]);
 
+  const updateFeatures = (results: EstimateResult[]) => {
+
+    const newAreaOfInterest: GeoJSONFeature[] = []
+
+    results.forEach(r => {
+      
+      const a = areaOfInterest.find(i => i.properties.ID === r.ID)
+      a && newAreaOfInterest.push({...a, properties: {...a.properties, ...r}})
+
+    })
+
+    setAreaOfInterest(newAreaOfInterest)
+
+  }
+
+  const handleCalculate = async () => {
+
+
+    try {
+
+      const response = await fetch("http://localhost/api/v1/wapor/estimate_new", {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(areaOfInterest)
+      })
+
+      const data = await response.json()
+
+      if (data.status === "completed") {
+        const results: EstimateResult[] = data.results
+        updateFeatures(results)
+
+      }
+
+      else {
+        const job_id = data.job_id
+        setJobId(job_id)
+      }
+
+
+    } catch(error) {
+      console.log(error)
+    }
+
+  }
+
+  const handleOnComplete = (results: EstimateResult[]) => {
+
+      updateFeatures(results)
+
+      let timer = setTimeout(() => {
+
+        setJobId(null)
+        clearTimeout(timer)
+      }, 800
+      )
+
+  }
+
   return (
     <>
       
@@ -176,10 +246,14 @@ export default function Home() {
           selectedAreaOfInterest={selectedFeature}
           onSelect={handleSelect}
           onRemove={handleDelete}
+          onCalculate={handleCalculate}
           onClear={handleClear}
         />
 
 
+        
+
+        <WaPORProgress jobId={jobId} onComplete={handleOnComplete}/>
 
       <div className="w-full flex-auto relative">
         <Modal

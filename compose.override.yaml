@@ -6,6 +6,9 @@ services:
     ports:
       - "8000:8000"
 
+    volumes:
+      - ./backend/alembic/versions:/app/alembic/versions
+
     develop:
       watch:
         - action: sync
@@ -13,6 +16,7 @@ services:
           target: /app
           ignore: 
             - .venv/
+            - alembic/versions/
 
         - action: rebuild
           path: ./backend/pyproject.toml

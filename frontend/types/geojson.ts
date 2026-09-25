@@ -11,6 +11,16 @@ export interface GeoJSONGeometry {
   coordinates: any;
 }
 
+export interface EstimateResult {
+    ID: number;
+    NPP?: number,
+    EYield_tpha?: number,
+    AETI_mm?: number,
+    WP_kgpm3?: number,
+    LGP?: number,
+
+}
+
 export interface FeatureProperties {
     ID: number;
     Name: string;
@@ -20,7 +30,12 @@ export interface FeatureProperties {
     Area_ha?: string,
     Crop?: string,
     Crop_ID?: string,
-    Location?: number
+    Location?: number,
+    NPP?: number,
+    EYield_tpha?: number,
+    AETI_mm?: number,
+    WP_kgpm3?: number,
+    LGP?: number,
 }
 
 export interface GeoJSONFeature {

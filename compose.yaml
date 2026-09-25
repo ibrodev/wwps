@@ -58,8 +58,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    
+    expose:
+      - 5432
 
+  redis:
+    build:
+      context: ./_docker/redis
+      dockerfile: Dockerfile
 
+    container_name: redis4${PROJECT_NAME}
+
+    restart: unless-stopped
+    
   nginx:
     build:
       context: ./_docker/nginx
