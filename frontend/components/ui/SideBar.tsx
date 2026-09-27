@@ -9,6 +9,7 @@ import eiarLogo from '@/public/eiar-logo.png'
 interface SideBarProps {
     areaOfInterests: GeoJSONFeature[] | []
     selectedAreaOfInterest: GeoJSONFeature | null
+    isCalculated: boolean
     onSelect: (areaOfInterest: GeoJSONFeature) => void
     onRemove: (areaOfInterest: GeoJSONFeature) => void
     onCalculate: () => void
@@ -18,11 +19,15 @@ interface SideBarProps {
 export default function SideBar({
     areaOfInterests, 
     selectedAreaOfInterest, 
+    isCalculated,
     onSelect, 
     onRemove,
     onCalculate,
     onClear
 } : SideBarProps) {
+
+
+    const hasFeatures = () => !areaOfInterests.length
 
     return (
         <div className="
@@ -58,6 +63,51 @@ export default function SideBar({
                 </div>
             </header>
 
+            <div className='flex gap-2 p-4'>
+                <button className="
+                        rounded 
+                        border
+                        border-eiar-green/90
+                        bg-eiar-green/90 
+                        px-2 
+                        py-2
+                        text-sm
+                        text-white 
+                        outline-none 
+                        focus:border-eiar-green
+                        focus:ring-2
+                        focus:ring-eiar-green/20
+                        hover:bg-eiar-green
+                        w-full
+                        disabled:cursor-not-allowed
+                        disabled:text-eiar-green/50
+                        disabled:bg-eiar-green/10
+                        disabled:border-eiar-green/10
+                        disabled:hover:bg-eiar-green/10
+                    ">Method and Data</button>
+                <button className="
+                        rounded 
+                        border
+                        border-eiar-green/90
+                        bg-eiar-green/90 
+                        px-2 
+                        py-2
+                        text-sm
+                        text-white 
+                        outline-none 
+                        focus:border-eiar-green
+                        focus:ring-2
+                        focus:ring-eiar-green/20
+                        hover:bg-eiar-green
+                        w-full
+                        disabled:cursor-not-allowed
+                        disabled:text-eiar-green/50
+                        disabled:bg-eiar-green/10
+                        disabled:border-eiar-green/10
+                        disabled:hover:bg-eiar-green/10
+                    ">Help</button>
+            </div>
+
             <h4 className="
                 uppercase 
                 font-semibold 
@@ -89,8 +139,8 @@ export default function SideBar({
                     {
                         !areaOfInterests.length ?
                         <div>
-                            <p>no area of interest added</p>
-                            <p>please use the map controls to add your area of interest, a maximum of 4</p>
+                            <p className='capitalize text-center font-semibold text-slate-400'>no area of interest added</p>
+                            <p className='text-slate-600 text-sm text-center'>Please use the map controls to add your area of interest</p>
                         </div> :
 
                         areaOfInterests.map(val => 
@@ -166,12 +216,12 @@ export default function SideBar({
                         disabled:hover:bg-eiar-green/10
                     "
                     onClick={onCalculate}
-                    disabled={!areaOfInterests.length}
+                    disabled={hasFeatures()}
                 >
-                    Run analysis
+                    {isCalculated ? 'Rerun' : 'Run'} analysis
                 </button>
 
-                <button 
+               {areaOfInterests.length > 0 && <button 
                     className="
                         rounded
                         border
@@ -192,10 +242,10 @@ export default function SideBar({
                         disabled:hover:border-eiar-green/10
                     "
                     onClick={onClear}
-                    disabled={!areaOfInterests.length}
                 >
                     Clear Plots
                 </button>
+                }
 
             </div>
 

@@ -15,6 +15,7 @@ import {
 import SideBar from "@/components/ui/SideBar";
 import { useNotification } from "@/components/ui/NotificationProvider";
 import WaPORProgress from "@/components/ui/WaPORProgress";
+import ResultPanel from "@/components/ui/ResultPanel";
 
 const Map = dynamic(
   () => import('@/components/map/Map'),
@@ -36,6 +37,7 @@ export default function Home() {
    const [areaOfInterest, setAreaOfInterest] = useState<Array<GeoJSONFeature> | []>([])
    const [selectedFeature, setSelectedFeature] = useState<GeoJSONFeature | null>(null);
    const [jobId, setJobId] = useState<string | null>(null)
+   const [isCalculated, setIsCalculated] = useState(false)
    
    const removingTemporaryLayer =  useRef(false);
 
@@ -75,6 +77,7 @@ export default function Home() {
       setSelectedFeature(null)
     }
     setAreaOfInterest([])
+    setIsCalculated(false)
   }
 
 
@@ -146,35 +149,78 @@ export default function Home() {
   };
 
   const handleUpload = useCallback(
-    
-    async (files: File[]) => {
-
+  async (files: File[]) => {
     try {
-
       const result = await importGeoData(files);
 
-      setAreaOfInterest(
-        prev => [
-          ...prev,
-          ...result.features.map(val => ({...val, properties: {...val.properties, SOS: formatDate(val.properties.SOS), EOS: formatDate(val.properties.EOS)}})),
-        ]
-      );
+      let duplicates: number[] = [];
+      let addedCount = 0;
 
-      notify.success("Plot successfully added", {
-        title: "Success",
+      setAreaOfInterest((prev) => {
+        const existingIds = new Set(
+          prev.map((a) => a.properties.ID)
+        );
+
+        const newFeatures = result.features.filter(
+          (feature) => {
+            const id = feature.properties.ID;
+
+            if (existingIds.has(id)) {
+              duplicates.push(id);
+              return false;
+            }
+
+            return true;
+          }
+        );
+
+        addedCount = newFeatures.length;
+
+        return [
+          ...prev,
+          ...newFeatures.map((feature) => ({
+            ...feature,
+            properties: {
+              ...feature.properties,
+              SOS: formatDate(feature.properties.SOS),
+              EOS: formatDate(feature.properties.EOS),
+            },
+          })),
+        ];
       });
 
-    } catch (error) {
+      if (duplicates.length > 0) {
+        notify.error(
+          `Duplicate IDs found: ${duplicates.join(", ")} not imported`,
+          {
+            title: "Duplicate plots",
+          }
+        );
+      }
 
+      if (addedCount > 0) {
+        notify.success(
+          `${addedCount} plot${addedCount !== 1 ? "s" : ""} successfully added`,
+          {
+            title: "Success",
+          }
+        );
+      }
+    } catch (error) {
       const message =
         error instanceof Error
           ? error.message
           : "Failed to import file.";
 
-      console.log(message) // TODO: use alert - notification
+      console.error(message);
 
+      notify.error(message, {
+        title: "Import failed",
+      });
     }
-  },[]);
+  },
+  []
+);
 
   const updateFeatures = (results: EstimateResult[]) => {
 
@@ -209,6 +255,7 @@ export default function Home() {
       if (data.status === "completed") {
         const results: EstimateResult[] = data.results
         updateFeatures(results)
+        setIsCalculated(true)
 
       }
 
@@ -237,6 +284,10 @@ export default function Home() {
 
   }
 
+  const handleExport = () => {
+      alert('hey')
+  }
+
   return (
     <>
       
@@ -244,6 +295,7 @@ export default function Home() {
         <SideBar 
           areaOfInterests={areaOfInterest}
           selectedAreaOfInterest={selectedFeature}
+          isCalculated={isCalculated}
           onSelect={handleSelect}
           onRemove={handleDelete}
           onCalculate={handleCalculate}
@@ -255,7 +307,13 @@ export default function Home() {
 
         <WaPORProgress jobId={jobId} onComplete={handleOnComplete}/>
 
-      <div className="w-full flex-auto relative">
+      <div className="w-full flex-auto relative overflow-hidden">
+        <ResultPanel 
+          aoi={areaOfInterest}
+          current={selectedFeature}
+          isCalculated={isCalculated}
+          onExport={handleExport}
+        />
         <Modal
           layer={layer}
           feature={feature}

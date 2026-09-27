@@ -91,6 +91,59 @@ services:
       - backend
       - frontend
 
+  db-backup:
+    build:
+      context: ./_docker/postgis
+      dockerfile: Dockerfile
+
+    container_name: db-backup4${PROJECT_NAME}
+
+    env_file:
+      - .env
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    volumes:
+      - ./backups/postgres:/backups
+
+    entrypoint: ["/bin/bash"]
+
+    command:
+      - -c
+      - |
+        set -e
+
+        TIMESTAMP=$$(date +"%Y-%m-%d_%H-%M-%S")
+        BACKUP_FILE="/backups/$${PROJECT_NAME}_$${TIMESTAMP}.dump"
+
+        echo "Starting PostgreSQL backup..."
+        echo "Database: postgres"
+        echo "Backup: $${BACKUP_FILE}"
+
+        PGPASSWORD="$${POSTGRES_PASSWORD}" pg_dump \
+          -h db \
+          -p 5432 \
+          -U postgres \
+          -d postgres \
+          -Fc \
+          -f "$${BACKUP_FILE}"
+
+        echo "Backup completed successfully."
+
+        echo "Removing backups older than 14 days..."
+        find /backups \
+          -type f \
+          -name "*.dump" \
+          -mtime +14 \
+          -delete
+
+        echo "Available backups:"
+        ls -lh /backups
+
+    restart: "no"
+
 
 volumes:
   dbdata:

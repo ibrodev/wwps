@@ -49,3 +49,5 @@ __pycache__
 .ruff_cache
 .env
 .env.*
+
+*.dump
