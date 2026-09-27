@@ -88,7 +88,7 @@ async def create_estimation(features: list[Feature]):
                     }
 
                     set_result_cache(id,  data)
-                    cached.append({**json.loads(data)})
+                    cached.append(data)
                  
                 else:
 

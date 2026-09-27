@@ -5,6 +5,7 @@ from contextlib import redirect_stderr
 from multiprocessing import Queue
 
 import geopandas as gpd
+from shapely import force_2d
 from sqlmodel import Session
 from shapely.geometry import shape
 from geoalchemy2.shape import from_shape
@@ -157,6 +158,7 @@ def run_wapor_estimation(
 
                 # GeoJSON -> Shapely
                 geometry = shape(r.geometry.model_dump())
+                geometry = force_2d(geometry)
 
                 to_db.append(Estimate(
                     id=id,
