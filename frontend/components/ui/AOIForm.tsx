@@ -3,6 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { area } from "@turf/turf";
+
 
 import type { GeoJSONFeature } from "@/types/geojson";
 
@@ -107,11 +109,39 @@ export default function AOIForm(
     onSave(properties);
   };
 
+
+    const getPointCoords = (feature: GeoJSONFeature) => {
+        return feature.geometry.coordinates.reduce((prev:string, next: any) => prev === '' ? prev = prev + next : prev = prev + "," + next, '')
+    }
+  
+    const getVertices = (feature: GeoJSONFeature) => feature.geometry.type === "Polygon"
+      ? feature.geometry.coordinates.reduce(
+          (sum: any, ring: any) => sum + Math.max(0, ring.length - 1),
+          0
+        )
+      : 0;
+
+    const getArea = (feature: GeoJSONFeature) => {
+        const areaHa = area(feature) / 10_000
+
+        return `${areaHa.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })} ha`;
+    }
     
 
     return (
 
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex gap-2 w-full border border-slate-200 rounded p-2 bg-slate-50">
+            <div className="flex flex-col text-slate-500 text-sm text-center  w-full">
+              <p>{feature?.geometry.type}</p>
+              <div className="flex gap-2 justify-center">
+              {feature?.geometry.type === "Polygon" ? "Vertices: " + getVertices(feature) +  " | Area: " + getArea(feature) : "Coordinates: " + (feature && getPointCoords(feature))}
+              </div>
+            </div>
+          </div>
           <div className="flex gap-2 w-full">
             <div className="flex flex-col">
               <label htmlFor="ID" className="form-label">ID</label>

@@ -1,64 +1,37 @@
 "use client";
 
-import { layerToGeoJSON } from "@/lib/map/geojson";
-import { GeoJSONFeature } from "@/types/geojson";
-import { type Layer } from "leaflet";
 import { X } from "lucide-react";
-import { area } from "@turf/turf";
-
-import { ReactNode, SetStateAction, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 interface ModalProps {
-  layer: Layer | null;
-  feature: GeoJSONFeature | null;
-  onClose: (value: SetStateAction<Layer | null>) => void;
+  isModalOpen: boolean;
+  onClose?: () => void;
   title?: string;
   children: ReactNode;
+  size?: "md" | "xl" | "2xl" | "4xl"
 }
 
 export default function Modal({
-  layer,
-  feature,
+  isModalOpen,
   onClose,
   title,
   children,
+  size = "md"
 }: ModalProps) {
 
 
-    const handleOnClose = () => {
-        layer?.remove()
-        onClose(null)
-    }
+    
 
-    const getPointCoords = (feature: GeoJSONFeature) => {
-        return feature.geometry.coordinates.reduce((prev:string, next: any) => prev === '' ? prev = prev + next : prev = prev + "," + next, '')
-    }
-
-    const getVertices = (feature: GeoJSONFeature) => feature.geometry.type === "Polygon"
-      ? feature.geometry.coordinates.reduce(
-          (sum: any, ring: any) => sum + Math.max(0, ring.length - 1),
-          0
-        )
-      : 0;
-
-    const getArea = (feature: GeoJSONFeature) => {
-        const areaHa = area(feature) / 10_000
-
-        return `${areaHa.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })} ha`;
-    }
+    
 
    
 
 
   useEffect(() => {
-    if (!layer) return;
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        handleOnClose();
+        onClose && onClose();
       }
     };
 
@@ -71,9 +44,9 @@ export default function Modal({
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
     };
-  }, [layer, onClose]);
+  }, [isModalOpen, onClose]);
 
-  if (!layer) return null;
+  if (!isModalOpen) return null;
 
   return (
     <div
@@ -84,37 +57,39 @@ export default function Modal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-eiar-dark/40"
-        onClick={handleOnClose}
+        className="absolute inset-0 bg-slate-700/60 backdrop-blur-[1px]"
+        onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-md rounded bg-white shadow-xl">
+      <div className={`relative z-10 w-full ${size === "md" && 'max-w-md'} ${size === "xl" && 'max-w-xl'} ${size === "2xl" && 'max-w-2xl'} ${size === "4xl" && 'max-w-4xl'} rounded bg-white shadow-xl`}>
         <div className="flex items-center justify-between border-b border-b-eiar-dark/15 px-3 py-3">
           <div className="flex flex-col">
             {title && (
                 <h2
                 id="modal-title"
-                className="font-semibold text-gray-900 "
+                className="font-semibold text-gray-900 capitalize"
                 >
                 {title}
                 </h2>
             )}
-            {feature?.geometry.type === 'Point' && <p className="text-xs text-gray-500">Pont at: {getPointCoords(feature)}</p>}
-            {feature?.geometry.type === 'Polygon' && <p className="text-xs text-gray-500">Polygon: {getVertices(feature)} vertices - {getArea(feature)}</p>}
-          </div>
+            </div>
 
+          {onClose && 
+          
           <button
             type="button"
-            onClick={handleOnClose}
+            onClick={onClose}
             className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 "
             aria-label="Close modal"
           >
             <X />
           </button>
+
+          }
         </div>
 
-        <div className="mt-4 p-3">
+        <div className="p-3">
             {children}
         </div>
       </div>

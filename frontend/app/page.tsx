@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 
 import type { EstimateResult, GeoJSONFeature } from "@/types/geojson";
@@ -38,6 +38,7 @@ export default function Home() {
    const [selectedFeature, setSelectedFeature] = useState<GeoJSONFeature | null>(null);
    const [jobId, setJobId] = useState<string | null>(null)
    const [isCalculated, setIsCalculated] = useState(false)
+   const [modalIsOpen, setIsModalOpen] = useState(false)
    
    const removingTemporaryLayer =  useRef(false);
 
@@ -48,6 +49,7 @@ export default function Home() {
   const handleCreate = (feature: GeoJSONFeature, layer: L.Layer ) => {
     setLayer(layer)
     setFeature(feature)
+    setIsModalOpen(true)
   };
 
   // User used Geoman's removal tool.
@@ -95,14 +97,15 @@ export default function Home() {
     removingTemporaryLayer.current = true;
 
     layer.remove();
-
+    
     setAreaOfInterest((previous) => [
       ...previous,
       updatedFeature,
     ]);
-
+    
     setLayer(null);
     setFeature(null);
+    setIsModalOpen(false)
 
     setSelectedFeature(updatedFeature)
 
@@ -123,6 +126,7 @@ export default function Home() {
       layer.remove();
     }
 
+    setIsModalOpen(false)
     setLayer(null);
     setFeature(null);
   };
@@ -288,6 +292,10 @@ export default function Home() {
       alert('hey')
   }
 
+  
+
+  
+
   return (
     <>
       
@@ -315,10 +323,10 @@ export default function Home() {
           onExport={handleExport}
         />
         <Modal
-          layer={layer}
-          feature={feature}
-          onClose={setLayer}
+          isModalOpen={modalIsOpen}
+          onClose={handleDiscard}
           title="Plot attributes"
+          size="md"
         >
         <AOIForm
             feature={feature}
