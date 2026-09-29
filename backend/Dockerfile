@@ -65,10 +65,21 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.13-slim AS prod
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libexpat1 \
+        libgeos-c1v5 \
+        libproj-dev \
+        proj-data \
+        proj-bin \
+        libgdal-dev \
+        gdal-bin \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/app /app/app
+COPY --from=builder /app /app
 
 RUN useradd --create-home --uid 10001 appuser \
 && chown -R appuser:appuser /app
