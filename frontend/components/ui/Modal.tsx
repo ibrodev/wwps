@@ -50,7 +50,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center py-6"
+      className="fixed inset-0 z-250 flex items-center justify-center py-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -62,7 +62,7 @@ export default function Modal({
       />
 
       {/* Modal */}
-      <div className={`relative flex flex-col overflow-hidden max-h-full z-10 w-full ${size === "md" && 'max-w-md'} ${size === "xl" && 'max-w-xl'} ${size === "2xl" && 'max-w-2xl'} ${size === "4xl" && 'max-w-4xl'} rounded bg-white shadow-xl`}>
+      <div className={`relative flex flex-col overflow-hidden max-h-full z-254 w-full ${size === "md" && 'max-w-md'} ${size === "xl" && 'max-w-xl'} ${size === "2xl" && 'max-w-2xl'} ${size === "4xl" && 'max-w-4xl'} rounded bg-white shadow-xl`}>
         <div className="flex items-center justify-between border-b border-b-eiar-dark/15 p-4">
           <div className="flex flex-col">
             {title && (
