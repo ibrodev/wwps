@@ -5,6 +5,10 @@ import type { GeoJSONFeature } from "@/types/geojson";
 import { MapPin, VectorPolygon, X } from "lucide-react";
 
 import eiarLogo from '@/public/eiar-logo.png'
+import Modal from './Modal';
+import MethodAndData from './MethodAndData';
+import { useState } from 'react';
+import Help from './Help';
 
 interface SideBarProps {
     areaOfInterests: GeoJSONFeature[] | []
@@ -26,10 +30,13 @@ export default function SideBar({
     onClear
 } : SideBarProps) {
 
+    const [open, setOpen] = useState(false)
+    const [modalContent, setModalContent] = useState('')
 
     const hasFeatures = () => !areaOfInterests.length
 
     return (
+        <>
         <div className="
             w-[380px] 
             bg-a 
@@ -84,7 +91,9 @@ export default function SideBar({
                         disabled:bg-eiar-green/10
                         disabled:border-eiar-green/10
                         disabled:hover:bg-eiar-green/10
-                    ">Method and Data</button>
+                    "
+                    onClick={() => setModalContent('method')}
+                    >Method and Data</button>
                 <button className="
                         rounded 
                         border
@@ -105,7 +114,9 @@ export default function SideBar({
                         disabled:bg-eiar-green/10
                         disabled:border-eiar-green/10
                         disabled:hover:bg-eiar-green/10
-                    ">Help</button>
+                    "
+                    onClick={() => setModalContent('help')}
+                    >Help</button>
             </div>
 
             <h4 className="
@@ -263,6 +274,21 @@ export default function SideBar({
             </div>
 
         </div>
+
+        <Modal
+            isModalOpen={!!modalContent}
+            onClose={() => setModalContent('')}
+            title={modalContent === "method" ? 'Method & data' : "Help — using the Wheat Water Productivity Tool"}
+            size={modalContent === "method" ? '2xl' : '4xl'}
+        >
+
+            {modalContent === 'method' ?
+                <MethodAndData />:
+                <Help />
+            }
+        </Modal>
+
+    </>
     )
 
 }
