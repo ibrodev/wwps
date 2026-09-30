@@ -246,7 +246,7 @@ export default function Home() {
 
     try {
 
-      const response = await fetch("http://localhost/api/v1/wapor/estimate_new", {
+      const response = await fetch("/api/v1/wapor/estimate_new", {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",

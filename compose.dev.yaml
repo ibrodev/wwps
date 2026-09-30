@@ -49,6 +49,5 @@ services:
 
 
   nginx:
-    
-    volumes:
-      - ./_docker/nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    build:
+      target: dev

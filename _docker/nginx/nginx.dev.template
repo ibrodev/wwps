@@ -14,7 +14,7 @@ http {
 
         listen 80;
 
-        server_name _;
+        server_name ${NGINX_SERVER_NAMES};
 
         client_max_body_size 100M;
 
