@@ -39,7 +39,7 @@ export default function WaPORProgress({
             try {
 
                 const response = await fetch(
-                    `/v1/wapor/estimate/${jobId}`,
+                    `/api/v1/wapor/estimate/${jobId}`,
                     {
                         cache: "no-store",
                     }

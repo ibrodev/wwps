@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 echo "[$(date)] Checking Let's Encrypt certificate..."
 
-docker compose -f compose.yml -f compose.prod.yml run --rm certbot renew
+docker compose -f compose.yaml -f compose.prod.yaml run --rm certbot renew
 
 echo "[$(date)] Reloading Nginx..."
 

@@ -30,7 +30,7 @@ echo "Requesting Let's Encrypt certificate..."
 echo "Domain: ${HTTPS_HOST}"
 echo "Email:  ${ADMIN_EMAIL}"
 
-docker compose -f compose.yml -f compose.prod.yml run --rm certbot certonly \
+docker compose -f compose.yaml -f compose.prod.yaml run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
     --email "${ADMIN_EMAIL}" \
