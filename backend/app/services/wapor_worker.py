@@ -20,6 +20,39 @@ from etwapor.productivity import estimate_wheat_wp
 
 from app.core.config import BASE_DIR
 
+from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
+from sqlmodel import Session
+
+from app.core.config import settings
+
+
+def save_estimates(estimates: list[Estimate]):
+
+    if not estimates:
+        return
+
+    engine = create_engine(
+        settings.DATABASE_URL,
+        poolclass=NullPool,
+        pool_pre_ping=True,
+    )
+
+    try:
+
+        with Session(engine) as session:
+
+            for estimate in estimates:
+                session.add(estimate)
+
+            session.commit()
+
+    except Exception:
+        raise
+
+    finally:
+        engine.dispose()
+
 
 TQDM_PATTERN = re.compile(
     r"(?P<percent>\d+(?:\.\d+)?)%"
@@ -177,10 +210,7 @@ def run_wapor_estimation(
 
             if len(to_db):
 
-                with Session(engine) as session:
-                    for e in to_db:
-                        session.add(e)
-                    session.commit()
+                save_estimates(to_db)
         
 
         # print(cached)
