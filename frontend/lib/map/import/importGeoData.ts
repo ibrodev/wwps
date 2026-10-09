@@ -4,9 +4,7 @@ import shp from "shpjs";
 
 import {
   getExtension,
-  getBasename,
   validateGeoJSON,
-  validateShapefileSelection,
 } from "./validation";
 
 import type { ImportResult } from "./types";
@@ -101,86 +99,12 @@ async function importShapefileZip(
   };
 }
 
-async function importShapefileComponents(
-  files: File[]
-): Promise<ImportResult> {
-
-  const validation =
-    validateShapefileSelection(files);
-
-  if (!validation.valid) {
-    throw new Error(
-      validation.message ?? "Invalid Shapefile."
-    );
-  }
-
-  const byExtension =
-    new Map<string, File>();
-
-  for (const file of files) {
-    byExtension.set(
-      getExtension(file.name),
-      file
-    );
-  }
-
-  const shpFile = byExtension.get("shp");
-  const dbfFile = byExtension.get("dbf");
-
-  if (!shpFile || !dbfFile) {
-    throw new Error(
-      "A complete Shapefile requires .shp, .dbf"
-    );
-  }
-
-  const shpBuffer =
-    await shpFile.arrayBuffer();
-
-  const dbfBuffer =
-    await dbfFile.arrayBuffer();
-
-
-  const result = await shp({
-    shp: shpBuffer,
-    dbf: dbfBuffer,
-  });
-
-  const features = normalizeGeoJSON(result);
-
-  if (features.length === 0) {
-    throw new Error(
-      "The Shapefile contains no features."
-    );
-  }
-
-  return {
-    features,
-    sourceType: "shapefile",
-    sourceName: getBasename(
-      shpFile.name
-    ),
-  };
-}
-
 
 export async function importGeoData(
-  files: File[]
+  file: File
 ): Promise<ImportResult> {
 
-  if (files.length === 0) {
-    throw new Error(
-      "No files were selected."
-    );
-  }
-
-  /*
-   * ZIP
-   */
-  if (files.length === 1) {
-
-    const file = files[0];
-
-    const extension =
+  const extension =
       getExtension(file.name);
 
     if (extension === "zip") {
@@ -193,23 +117,12 @@ export async function importGeoData(
     ) {
       return importGeoJSON(file);
     }
-  }
 
-  /*
-   * Individual Shapefile components
-   */
-  const extensions = files.map(
-    (file) => getExtension(file.name)
-  );
-
-  if (extensions.includes("shp")) {
-    return importShapefileComponents(files);
-  }
 
   /*
    * Nothing matched
    */
   throw new Error(
-    "Unsupported file format. Please select a GeoJSON file, a Shapefile ZIP, or Shapefile components."
+    "Unsupported file format. Please select a Shapefile ZIP, or GeoJSON file."
   );
 }

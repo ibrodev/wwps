@@ -11,7 +11,7 @@ import { layerToGeoJSON } from "@/lib/map/geojson";
 interface MapDrawingProps {
   onCreate?: (feature: GeoJSONFeature, layer: Layer) => void;
   onDelete?: (feature: GeoJSONFeature, layer: Layer) => void;
-  onUpload?: (files: File[]) => void;
+  onUpload?: (file: File) => void;
 }
 
 export default function MapDrawing({
@@ -51,14 +51,12 @@ export default function MapDrawing({
     const input = document.createElement("input");
 
     input.type = "file";
-    input.multiple = true;
     input.accept = [
         ".geojson",
         ".json",
         ".zip",
-        ".shp",
-        ".dbf",
     ].join(",");
+
     input.style.display = "none";
 
     input.addEventListener(
@@ -68,17 +66,11 @@ export default function MapDrawing({
         const target =
           event.target as HTMLInputElement;
 
-        const files =
-          target.files
-            ? Array.from(target.files)
-            : [];
+        const files = target.files && target.files[0]
 
-        if (files.length > 0) {
+        if (files) {
           onUpload?.(files);
         }
-
-        // Allow selecting the same files again
-        input.value = "";
       }
     );
 

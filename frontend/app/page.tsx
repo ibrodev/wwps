@@ -16,6 +16,7 @@ import SideBar from "@/components/ui/SideBar";
 import { useNotification } from "@/components/ui/NotificationProvider";
 import WaPORProgress from "@/components/ui/WaPORProgress";
 import ResultPanel from "@/components/ui/ResultPanel";
+import { area } from "@turf/turf";
 
 const Map = dynamic(
   () => import('@/components/map/Map'),
@@ -47,6 +48,20 @@ export default function Home() {
   
 
   const handleCreate = (feature: GeoJSONFeature, layer: L.Layer ) => {
+
+    if ( feature.geometry.type === "Polygon" && area(feature) / 10_000 > 20_000) {
+
+      notify.error(
+        `Max area exceeded. The maximum area allowed is 20,000 ha.`,
+        {
+          title: "Failed to import feature",
+        }
+      );
+      layer.remove();
+
+      return;
+    }
+
     setLayer(layer)
     setFeature(feature)
     setIsModalOpen(true)
@@ -153,11 +168,12 @@ export default function Home() {
   };
 
   const handleUpload = useCallback(
-  async (files: File[]) => {
+  async (file: File) => {
     try {
-      const result = await importGeoData(files);
+      const result = await importGeoData(file);
 
-      let duplicates: number[] = [];
+      let failedValidationCount: number = 0
+      
       let addedCount = 0;
 
       setAreaOfInterest((prev) => {
@@ -168,9 +184,18 @@ export default function Home() {
         const newFeatures = result.features.filter(
           (feature) => {
             const id = feature.properties.ID;
+            const name = feature.properties.Name;
+            const location = feature.properties.Location;
 
-            if (existingIds.has(id)) {
-              duplicates.push(id);
+
+            if (
+              !parseInt(id) || 
+              existingIds.has(id) || 
+              !name || 
+              (feature.geometry.type === 'Point' && !location) ||
+              (feature.geometry.type === 'Polygon' && area(feature) / 10_000 > 20000)
+            ) {
+              failedValidationCount++;
               return false;
             }
 
@@ -193,14 +218,16 @@ export default function Home() {
         ];
       });
 
-      if (duplicates.length > 0) {
+    
+      if (failedValidationCount > 0) {
         notify.error(
-          `Duplicate IDs found: ${duplicates.join(", ")} not imported`,
+          `Failed to import ${failedValidationCount} features.`,
           {
-            title: "Duplicate plots",
+            title: "Validation Errors",
           }
         );
       }
+
 
       if (addedCount > 0) {
         notify.success(
@@ -216,7 +243,6 @@ export default function Home() {
           ? error.message
           : "Failed to import file.";
 
-      console.error(message);
 
       notify.error(message, {
         title: "Import failed",
