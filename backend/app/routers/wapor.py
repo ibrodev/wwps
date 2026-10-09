@@ -1,13 +1,11 @@
-from datetime import datetime
 import json
 from multiprocessing import Process, Queue
 import threading
 from uuid import uuid4
 
-import geopandas as gpd
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.services.wapor_progress import get_progress, get_result_cache, set_progress, set_result_cache
 from app.services.wapor_worker import monitor_progress, run_wapor_estimation
@@ -16,40 +14,13 @@ from app.core.util import hash_id
 from app.core.database import engine
 from app.models.estimate import Estimate
 
-from etwapor.productivity import estimate_wheat_wp
-
-
-
 
 router = APIRouter(
     prefix='/api/v1/wapor',
     tags=['wapor']
 )
 
-@router.post('/estimate')
-async def estimate(features: list[Feature]):
-
-    gdf = gpd.GeoDataFrame.from_features(
-        [feature.model_dump() for feature in features],
-        crs="EPSG:4326"
-    )
-    result = estimate_wheat_wp(
-        gdf=gdf
-    )
-
-    # Convert pandas Timestamp to ISO date strings
-    for column in ["SOS", "EOS"]:
-        if column in result.columns:
-            result[column] = result[column].dt.strftime("%Y-%m-%d")
-
-    geojson = json.loads(result.to_json())
-
-    print(geojson)
-
-    return geojson
-
-
-@router.post("/estimate_new")
+@router.post("/estimate")
 async def create_estimation(features: list[Feature]):
 
     # TODO: validate each feature

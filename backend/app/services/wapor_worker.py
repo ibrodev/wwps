@@ -11,14 +11,12 @@ from shapely.geometry import shape
 from geoalchemy2.shape import from_shape
 
 
-from app.services.wapor_progress import get_result_cache, set_progress, set_result_cache
+from app.services.wapor_progress import set_progress, set_result_cache
 from app.schemas.geojson import Feature, FeatureCollection, Result
-from app.core.util import hash_id, to_iso_date
+from app.core.util import to_iso_date
 from app.models.estimate import Estimate
-from app.core.database import engine
 from etwapor.productivity import estimate_wheat_wp
 
-from app.core.config import BASE_DIR
 
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import dynamic from "next/dynamic";
 
 import type { EstimateResult, GeoJSONFeature } from "@/types/geojson";
@@ -246,7 +246,7 @@ export default function Home() {
 
     try {
 
-      const response = await fetch("/api/v1/wapor/estimate_new", {
+      const response = await fetch("/api/v1/wapor/estimate", {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",

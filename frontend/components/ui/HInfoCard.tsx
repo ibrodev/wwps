@@ -2,7 +2,6 @@
 
 import { Tally1 } from "lucide-react";
 import { JSX } from "react/jsx-runtime";
-import { array } from "zod";
 
 export interface Statistics {
     value: string | number | null;

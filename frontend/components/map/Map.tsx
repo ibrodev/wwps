@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  MapContainer,
-  TileLayer,
-  FeatureGroup,
+  MapContainer
 } from "react-leaflet";
 
 import L from 'leaflet'
