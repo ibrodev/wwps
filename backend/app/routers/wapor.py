@@ -23,8 +23,13 @@ router = APIRouter(
 @router.post("/estimate")
 async def create_estimation(features: list[Feature]):
 
-    # TODO: validate each feature
+    unique_ids = set(f.properties.ID for f in features)
 
+    if len(unique_ids) != len(features):
+        raise HTTPException(
+            status_code=400,
+            detail="Duplicate feature IDs found in the request.",
+        )
     
 
     cached: list[Result] = []
