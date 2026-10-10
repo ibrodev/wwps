@@ -8,9 +8,10 @@ import Chart from './Chart';
 import { FileUp, MoveRight } from 'lucide-react';
 import { exportCSV, exportGeoJSON } from '@/lib/fileExport';
 import {formatDate} from '@/lib/dateHelpers'
+import { useEffect, useMemo, useState } from 'react';
 
 interface ResultPanelProps {
-    aoi: GeoJSONFeature[] | [];
+    features: GeoJSONFeature[] | [];
     current: GeoJSONFeature | null;
     isCalculated: boolean;
     onExport: () => void
@@ -18,12 +19,36 @@ interface ResultPanelProps {
 
 export default function ResultPanel(
     {
-        aoi,
+        features,
         current,
         isCalculated,
         onExport
     }: ResultPanelProps
 ) {
+
+    const [aoi, setAoi] = useState<GeoJSONFeature[] | []>()
+    const [hasPointsWithLocation, setHasPointsWithLocation] = useState(false)
+    const [arePointsAggregated, setPointsAreAggregated] = useState(false)
+
+    useEffect(() => {
+
+        setAoi([...features])
+
+    }, [features])
+
+
+    useEffect(() => {
+
+        if(!aoi) return
+        const locations = new Set(aoi?.map(a => a.properties.Location))
+
+        if (locations.size !== 0 && locations.size < aoi?.filter(a => a.geometry.type === "Point").length)
+            setHasPointsWithLocation(true && isCalculated)
+
+        else
+            setHasPointsWithLocation(false)
+
+    }, [aoi])
 
     const round = (value:string | number | null | undefined): string | null => {
         
@@ -149,6 +174,90 @@ export default function ResultPanel(
 
     }
 
+    const yieldData = useMemo(() => {
+
+        if (hasPointsWithLocation && arePointsAggregated) {
+
+            const pointFeatures = aoi?.
+                filter(a => a.geometry.type === "Point")
+                .map(a => {
+                    return {
+                        name: a.properties.Name,
+                        location: a.properties.Location,
+                        value: a.properties.EYield_tpha
+                    }
+                })
+                .reduce((prev, curr, index) => {
+
+                    if (index === 0) prev.push(curr)
+
+                    const existingIndex = prev.findIndex(a => a.location === curr.location)
+
+                    if (existingIndex !== -1) {
+                        prev[existingIndex].value = Number(mean([prev[existingIndex].value, curr.value])) || undefined
+                    } else {
+                        prev.push(curr)
+                    }
+
+                    return prev
+
+                }, Array<{ name: string, location: number | undefined, value: number | undefined }>())    
+
+
+            
+            return [...(pointFeatures || []), ...(aoi?.filter(a => a.geometry.type === "Polygon").map(a => { return { name: a.properties.Name, value: Number(a.properties.EYield_tpha) } }) || [])]
+
+
+
+        }
+
+        return aoi?.map(a => { return { name: a.properties.Name, value: Number(a.properties.EYield_tpha) } })
+
+    }, [aoi, hasPointsWithLocation, arePointsAggregated])
+
+
+
+    const waterProductivityData = useMemo(() => {
+
+        if (hasPointsWithLocation && arePointsAggregated) {
+
+            const pointFeatures = aoi?.
+                filter(a => a.geometry.type === "Point")
+                .map(a => {
+                    return {
+                        name: a.properties.Name,
+                        location: a.properties.Location,
+                        value: a.properties.WP_kgpm3
+                    }
+                })
+                .reduce((prev, curr, index) => {
+
+                    if (index === 0) prev.push(curr)
+
+                    const existingIndex = prev.findIndex(a => a.location === curr.location)
+
+                    if (existingIndex !== -1) {
+                        prev[existingIndex].value = Number(mean([prev[existingIndex].value, curr.value])) || undefined
+                    } else {
+                        prev.push(curr)
+                    }
+
+                    return prev
+
+                }, Array<{ name: string, location: number | undefined, value: number | undefined }>())    
+
+
+            
+            return [...(pointFeatures || []), ...(aoi?.filter(a => a.geometry.type === "Polygon").map(a => { return { name: a.properties.Name, value: Number(a.properties.WP_kgpm3) } }) || [])]
+
+
+
+        }
+
+        return aoi?.map(a => { return { name: a.properties.Name, value: Number(a.properties.WP_kgpm3) } })
+
+    }, [aoi, hasPointsWithLocation, arePointsAggregated])
+
     return (
         <div className={`
             absolute
@@ -163,7 +272,7 @@ export default function ResultPanel(
             transition-all
             duration-300
             ease-out
-            ${!aoi.length && !current ? 'translate-x-[104%]' : 'translate-x-0'}
+            ${!aoi?.length && !current ? 'translate-x-[104%]' : 'translate-x-0'}
         `}>
 
         <div className='
@@ -201,16 +310,16 @@ export default function ResultPanel(
                     {
                         current ? 
                         getAOIInfo(current) :  
-                        `${aoi.length} areas of interest`
+                        `${aoi?.length} areas of interest`
                     }
                 </p>
                 </div>
                 <div>
-                    <span className='px-2 py-1 rounded-xl bg-amber-500/20 text-amber-900 text-xs'>WaPOR v3</span>
+                    {hasPointsWithLocation && !current && <button onClick={() => setPointsAreAggregated(!arePointsAggregated)} className='rounded cursor-pointer hover:bg-sky-700 text-sm border border-sky-400 bg-sky-600 text-white p-2'>{arePointsAggregated ? 'Desegregate Point Results' : 'Aggregate Point Results'}</button>}
                 </div>
             </div>
 
-            {(current || !!aoi.length ) && 
+            {(current || !!aoi?.length ) && 
             <>
                 <HInfoCard 
                     {...getWPInfo()}
@@ -242,14 +351,14 @@ export default function ResultPanel(
             </>
             }
 
-            {!current && aoi.length > 0 && <Chart 
-                data={aoi.map(a => {return {name: a.properties.Name, value: Number(a.properties.EYield_tpha)}})}
+            {!current && aoi?.length > 0 && <Chart 
+                data={yieldData}
                 title="Estimated crop yield"
                 unit='t/ha'
             />}
 
-            {!current && aoi.length > 0 && <Chart 
-                data={aoi.map(a => {return {name: a.properties.Name, value: Number(a.properties.WP_kgpm3)}})}
+            {!current && aoi?.length > 0 && <Chart 
+                data={waterProductivityData}
                 title="Water productivity"
                 unit='kg/m³'
                 hslColor={{hue: 197, sat: 93, lig: 29}}

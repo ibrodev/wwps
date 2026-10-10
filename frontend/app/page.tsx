@@ -121,6 +121,7 @@ export default function Home() {
     setLayer(null);
     setFeature(null);
     setIsModalOpen(false)
+    setIsCalculated(false)
 
     setSelectedFeature(updatedFeature)
 
@@ -230,6 +231,7 @@ export default function Home() {
 
 
       if (addedCount > 0) {
+        setIsCalculated(false)
         notify.success(
           `${addedCount} plot${addedCount !== 1 ? "s" : ""} successfully added`,
           {
@@ -343,7 +345,7 @@ export default function Home() {
 
       <div className="w-full flex-auto relative overflow-hidden">
         <ResultPanel 
-          aoi={areaOfInterest}
+          features={areaOfInterest}
           current={selectedFeature}
           isCalculated={isCalculated}
           onExport={handleExport}
