@@ -21,7 +21,7 @@ class Result(ID):
     WP_kgpm3: float | None = None
     LGP: float | None = None 
 
-class Properties(ID):
+class Properties(Result):
 
     Name: str
     SOS: datetime
