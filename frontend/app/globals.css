@@ -43,6 +43,10 @@
     .form-error {
         @apply mt-1 text-sm text-red-600;
     }
+
+    .map-tool-inherit {
+        @apply inline-block px-2 py-1 font-light text-white bg-gray-500 leading-tight;
+    }
 }
 
 .leaflet-pm-toolbar .leaflet-pm-icon-polygon {
