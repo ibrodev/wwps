@@ -63,7 +63,7 @@ export default function Modal({
 
       {/* Modal */}
       <div className={`relative flex flex-col overflow-hidden max-h-full z-254 w-full ${size === "md" && 'max-w-md'} ${size === "xl" && 'max-w-xl'} ${size === "2xl" && 'max-w-2xl'} ${size === "4xl" && 'max-w-4xl'} rounded bg-white shadow-xl`}>
-        <div className="flex items-center justify-between border-b border-b-eiar-dark/15 p-4">
+        {title && onClose && <div className="flex items-center justify-between border-b border-b-eiar-dark/15 p-4">
           <div className="flex flex-col">
             {title && (
                 <h2
@@ -87,7 +87,7 @@ export default function Modal({
           </button>
 
           }
-        </div>
+        </div>}
 
         <div className="p-4 overflow-y-auto">
             {children}

@@ -14,7 +14,6 @@ interface ResultPanelProps {
     features: GeoJSONFeature[] | [];
     current: GeoJSONFeature | null;
     isCalculated: boolean;
-    onExport: () => void
 }
 
 export default function ResultPanel(
@@ -22,7 +21,6 @@ export default function ResultPanel(
         features,
         current,
         isCalculated,
-        onExport
     }: ResultPanelProps
 ) {
 

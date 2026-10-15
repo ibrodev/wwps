@@ -19,12 +19,14 @@ interface WaporProgress {
 
 interface Props {
     jobId: string | null;
-    onComplete: (result: EstimateResult[]) => void
+    onComplete: (result: EstimateResult[]) => void;
+    onError: () => void;
 }
 
 export default function WaPORProgress({
     jobId,
-    onComplete
+    onComplete,
+    onError
 }: Props) {
 
     const [progress, setProgress] =
@@ -101,108 +103,61 @@ export default function WaPORProgress({
 
         }
 
+        if (progress?.status === 'failed') {
+
+
+            onError()
+
+        }
+
 
     }, [progress])
 
-    if (!jobId) return null
-
-    if (!progress) {
-        return (
-            <div>
-                Starting...
-            </div>
-        );
-    }
-
     return (
-         <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-eiar-dark/40"
-      />
+         
 
-      <div className="relative z-10 w-full max-w-md rounded bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-b-eiar-dark/15 px-3 py-3">
-          <div className="flex flex-col">
-                <h2
-                id="modal-title"
-                className="font-semibold text-gray-900 "
-                >
-                    progressing
-                </h2>
-          </div>
+        
 
-          <button
-            type="button"
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 "
-            aria-label="Close modal"
-          >
-          </button>
-        </div>
-
-        <div className="mt-4 p-3">
+        <div>
              <div className="w-full space-y-3">
 
-            <div className="flex justify-between">
-                <span className="font-medium">
-                    {progress.status}
-                </span>
+                <div className="flex justify-between items-center">
+                    <span className="font-medium uppercase">
+                        {progress?.status}
+                    </span>
 
-                <span>
-                    {progress.percent.toFixed(0)}%
-                </span>
-            </div>
-
-            <div className="h-3 overflow-hidden rounded-full bg-gray-200">
-
-                <div
-                    className="h-full rounded-full bg-blue-600 transition-all duration-300"
-                    style={{
-                        width: `${progress.percent}%`,
-                    }}
-                />
-
-            </div>
-
-            <div className="text-sm text-gray-500">
-
-                cached: {progress.cached} |
-
-                {progress.current} of{" "}
-                {progress.total} features
-
-            </div>
-
-            {progress.message && (
-                <div className="text-sm">
-                    {progress.message}
+                    <span className="text-4xl leading-none">
+                        {progress?.percent.toFixed(0)}%
+                    </span>
                 </div>
-            )}
 
-            {progress.status === "completed" && (
-                <div className="font-medium text-green-600 max-w-xl">
-                    Estimation completed
+                <div className="h-2 overflow-hidden rounded bg-gray-200">
+
+                    <div
+                        className="h-full rounded bg-blue-600 transition-all duration-300"
+                        style={{
+                            width: `${progress?.percent}%`,
+                        }}
+                    />
+
                 </div>
-            )}
 
-            {progress.status === "failed" && (
-                <div className="font-medium text-red-600">
-                    Estimation failed
+                <div className="text-sm text-gray-500 flex justify-between mt-2">
+
+                    
+                    <p>{progress?.message}</p>
+
+                    <p>Cached: {progress?.cached}</p>
+
                 </div>
-            )}
 
+               
+
+            </div>
         </div>
-        </div>
-      </div>
 
        
 
-      </div>
         
     );
 }

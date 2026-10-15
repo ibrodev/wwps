@@ -344,18 +344,28 @@ export default function Home() {
   const handleOnComplete = (results: EstimateResult[]) => {
 
       updateFeatures(results)
-
+      
       let timer = setTimeout(() => {
-
+        
+        setSelectedFeature(null)
         setJobId(null)
         clearTimeout(timer)
-      }, 800
+        notify.success('Analysis completed successfully.', {title: 'Analysis Completed'})
+      }, 50
       )
+
 
   }
 
-  const handleExport = () => {
-      alert('hey')
+  const handleOnError = () => {
+     let timer = setTimeout(() => {
+
+        setJobId(null)
+        clearTimeout(timer)
+      }, 200
+      )
+
+      notify.error('Something went wrong! Please try again.', {title: 'Analysis Failed'})
   }
 
   
@@ -378,15 +388,20 @@ export default function Home() {
 
 
         
+        <Modal
+          isModalOpen={!!jobId}
+          size="md"
+        >
+          <WaPORProgress jobId={jobId} onComplete={handleOnComplete} onError={handleOnError}/>
 
-        <WaPORProgress jobId={jobId} onComplete={handleOnComplete}/>
+        </Modal>
+
 
       <div className="w-full flex-auto relative overflow-hidden">
         <ResultPanel 
           features={areaOfInterest}
           current={selectedFeature}
           isCalculated={isCalculated}
-          onExport={handleExport}
         />
         <Modal
           isModalOpen={modalIsOpen}
