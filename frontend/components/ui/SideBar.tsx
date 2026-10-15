@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import type { GeoJSONFeature } from "@/types/geojson";
-import { MapPin, VectorPolygon, X } from "lucide-react";
+import { Import, MapPin, VectorPolygon, X } from "lucide-react";
 
 import eiarLogo from '@/public/eiar-logo.png'
 import Modal from './Modal';
@@ -151,7 +151,9 @@ export default function SideBar({
                         !areaOfInterests.length ?
                         <div>
                             <p className='capitalize text-center font-semibold text-slate-400'>no area of interest added</p>
-                            <p className='text-slate-600 text-sm text-center'>Please use the map controls to add your area of interest</p>
+                            <p className='text-slate-600 text-sm text-center mt-2'>
+                                Click <b><MapPin size={16} className="inline-block"/></b> to draw a point or <b><VectorPolygon size={16} className="inline-block"/></b> to draw a polygon manually using the map tools, or Click <b><Import size={16} className="inline-block" /></b> to upload .zip shapefile or .geojson file for plots you already have.
+                            </p>
                         </div> :
 
                         areaOfInterests.map(val => 
