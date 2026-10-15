@@ -1,6 +1,12 @@
 @import "tailwindcss";
 /* @plugin "@tailwindcss/forms"; */
 
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 @theme {
     --color-eiar-green: #075c36;
     --color-eiar-dark: #03452a;

@@ -267,7 +267,7 @@ export default function SideBar({
                     text-justify
                     p-4
                 ">
-                    Wheat Water Productivity Tool (WWPT) · developed by IWMI East Africa with EIAR under WaPOR Phase II, supported by FAO and the Government of the Netherlands. 
+                    Wheat Water Productivity Tool (WWPT) · developed by IWMI with EIAR under WaPOR Phase II, supported by FAO and the Government of the Netherlands. 
                 </p>
 
                 <p className="text-[.7rem] text-gray-500 px-4 pt-2">&copy; 2026 Ethiopian Institute of Agricultural Research</p>
