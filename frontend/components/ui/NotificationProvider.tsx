@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import {
   createContext,
+  JSX,
   useCallback,
   useContext,
   useMemo,
@@ -21,7 +22,7 @@ interface Notification {
   id: number;
   type: NotificationType;
   title?: string;
-  message: string;
+  message: string | JSX.Element;
   duration: number;
 }
 
@@ -32,10 +33,10 @@ interface NotifyOptions {
 
 interface NotificationContextType {
   notify: {
-    success: (message: string, options?: NotifyOptions) => void;
-    error: (message: string, options?: NotifyOptions) => void;
-    warning: (message: string, options?: NotifyOptions) => void;
-    info: (message: string, options?: NotifyOptions) => void;
+    success: (message: string | JSX.Element, options?: NotifyOptions) => void;
+    error: (message: string | JSX.Element, options?: NotifyOptions) => void;
+    warning: (message: string | JSX.Element, options?: NotifyOptions) => void;
+    info: (message: string | JSX.Element, options?: NotifyOptions) => void;
   };
   dismiss: (id: number) => void;
   clearAll: () => void;
@@ -62,7 +63,7 @@ export function NotificationProvider({
   const show = useCallback(
     (
       type: NotificationType,
-      message: string,
+      message: string | JSX.Element,
       options?: NotifyOptions
     ) => {
       const id = ++notificationId;
@@ -91,16 +92,16 @@ export function NotificationProvider({
 
   const notify = useMemo(
     () => ({
-      success: (message: string, options?: NotifyOptions) =>
+      success: (message: string | JSX.Element, options?: NotifyOptions) =>
         show("success", message, options),
 
-      error: (message: string, options?: NotifyOptions) =>
+      error: (message: string | JSX.Element, options?: NotifyOptions) =>
         show("error", message, options),
 
-      warning: (message: string, options?: NotifyOptions) =>
+      warning: (message: string | JSX.Element, options?: NotifyOptions) =>
         show("warning", message, options),
 
-      info: (message: string, options?: NotifyOptions) =>
+      info: (message: string | JSX.Element, options?: NotifyOptions) =>
         show("info", message, options),
     }),
     [show]
@@ -123,8 +124,9 @@ export function NotificationProvider({
       <div
         className="
           fixed
-          right-5
-          top-5
+          top-3
+          left-[50%]
+          -ml-[234px]
           z-[9999]
           flex
           w-[calc(100%-2.5rem)]
@@ -238,7 +240,7 @@ function NotificationItem({
             </p>
           )}
 
-          <p
+          <div
             className={`
               text-sm
               ${notification.title ? "mt-1" : ""}
@@ -246,7 +248,7 @@ function NotificationItem({
             `}
           >
             {notification.message}
-          </p>
+          </div>
         </div>
 
         <button

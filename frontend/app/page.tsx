@@ -173,8 +173,14 @@ export default function Home() {
     try {
       const result = await importGeoData(file);
 
-      let failedValidationCount: number = 0
+      let featuresWithValidationError: number = 0
       
+      let errorMissingID: number = 0
+      let errorMissingName: number = 0
+      let errorMissingLocation: number = 0
+      let errorDuplicateID: number = 0
+      let errorExcideAreaLimit: number = 0
+
       let addedCount = 0;
 
       setAreaOfInterest((prev) => {
@@ -188,7 +194,6 @@ export default function Home() {
             const name = feature.properties.Name;
             const location = feature.properties.Location;
 
-
             if (
               !parseInt(id) || 
               existingIds.has(id) || 
@@ -196,7 +201,29 @@ export default function Home() {
               (feature.geometry.type === 'Point' && !location) ||
               (feature.geometry.type === 'Polygon' && area(feature) / 10_000 > 20000)
             ) {
-              failedValidationCount++;
+
+               if (!parseInt(id)) {
+                  errorMissingID++
+                }
+
+                if (existingIds.has(id)) {
+                  errorDuplicateID++
+                }
+
+                if(!name) {
+                  errorMissingName++
+                }
+
+                if (feature.geometry.type === 'Point' && !location) {
+                  errorMissingLocation++
+                }
+
+                if(feature.geometry.type === 'Polygon' && area(feature) / 10_000 > 20000) {
+                  errorExcideAreaLimit++
+                }
+              
+              featuresWithValidationError++;
+
               return false;
             }
 
@@ -220,11 +247,21 @@ export default function Home() {
       });
 
     
-      if (failedValidationCount > 0) {
+      if (featuresWithValidationError > 0) {
         notify.error(
-          `Failed to import ${failedValidationCount} features.`,
+          <div>
+            <p>Failed to import {featuresWithValidationError} out of {result.features.length} {`${result.features.length > 1 ? 'features' : 'feature'}`}.</p>
+            <ul className="[&_li]:list-disc ml-6">
+              {!!errorMissingID && <li>{errorMissingID} {`${errorMissingID > 1 ? 'features' : 'feature'} has no ID`}</li>}
+              {!!errorDuplicateID && <li>{errorDuplicateID} {`${errorDuplicateID > 1 ? 'features' : 'feature'} has duplicate ID with existing features`}</li>}
+              {!!errorMissingName && <li>{errorMissingName} {`${errorMissingName > 1 ? 'features' : 'feature'} has no Name`}</li>}
+              {!!errorMissingLocation && <li>{errorMissingLocation} {`Point ${errorMissingLocation > 1 ? 'features' : 'feature'} has no Location`}</li>}
+              {!!errorExcideAreaLimit && <li>{errorExcideAreaLimit} {`Polygon ${errorExcideAreaLimit > 1 ? 'features' : 'feature'} excide max area limit: 20K Ha`}</li>}
+            </ul>
+          </div>,
           {
             title: "Validation Errors",
+            duration: 6000
           }
         );
       }
@@ -236,6 +273,7 @@ export default function Home() {
           `${addedCount} plot${addedCount !== 1 ? "s" : ""} successfully added`,
           {
             title: "Success",
+            duration: 6000
           }
         );
       }
